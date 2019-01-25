@@ -32,6 +32,11 @@ postSchema.pre('findOne', function(next) {
   next();
 });
 
+postSchema.pre('create', function(next) {
+  this.populate('author');
+  next();
+});
+
 postSchema.virtual('authorName').get(function() {
   return `${this.author.firstName} ${this.author.lastName}`.trim();
 });
@@ -40,7 +45,7 @@ postSchema.methods.serialize = function() {
   return {
     id: this._id,
     title: this.title,
-    author: this.authorName,
+    author: this.author,
     content: this.content,
     comments: this.comments
   };

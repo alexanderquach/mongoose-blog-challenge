@@ -156,7 +156,7 @@ app.get('/blog-posts/:id', (req, res) => {
 });
 
 app.post('/blog-posts', (req, res) => {
-  const requiredFields = ['title', 'content', 'author_id'];
+  const requiredFields = ['title', 'content', 'author'];
   requiredFields.forEach(field => {
     if (!(field in req.body)) {
       const message = `Missing \`${field}\` in request body`;
@@ -165,22 +165,16 @@ app.post('/blog-posts', (req, res) => {
     }
   });
   Author
-    .findById(req.body.author_id)
+    .findOne({firstName: req.body.author})
     .then(author => {
       if (author) {
         BlogPost
         .create({
           title: req.body.title,
           content: req.body.content,
-          author: req.body.id,
+          author: author._id,
         })
-        .then(blogPost => res.status(201).json({
-          id: blogPost.id,
-          title: blogPost.title,
-          author: `${author.firstName} ${author.lastName}`,
-          content: blogPost.content,
-          comments: blogPost.comments
-        }))
+        .then(blogPost => res.status(201).json(blogPost.serialize()))
         .catch(err => {
           console.error(err);
           res.status(500).json({message: 'Internal server error'});
@@ -211,7 +205,7 @@ app.put('/blog-posts/:id', (req, res) => {
   });
   BlogPost
   .findByIdAndUpdate(req.params.id, {$set: updated}, {new: true})
-  .then(updatedPost => res.status(204).json({
+  .then(updatedPost => res.status(200).json({
     id: updatedPost.id,
     title: updatedPost.title,
     content: updatedPost.content
@@ -223,7 +217,7 @@ app.delete('/blog-posts/:id', (req, res) => {
   BlogPost
   .findByIdAndRemove(req.params.id)
   .then(() => {
-    res.status(204).json({message: 'Deleted'});
+    res.status(200).json({message: 'Deleted'});
   })
   .catch(err => {
     console.error(err);
